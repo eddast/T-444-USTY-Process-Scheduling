@@ -18,9 +18,16 @@ public class TimeSlicing implements Runnable {
 				case RR:
 					try {
 						Thread.sleep(50);
+						
+						// Time−slicing discontinued  when no  processes  are  in  queue
 						if ( scheduler.processes.size() != 0 ) {
 							try {
+								
+								// Current process running preserved
 								Integer currentProcess = scheduler.processes.peek();
+								
+								// Have thread sleep for a quantum time before swapping process
+								// Thread sleep period ensures process runs for a quantum time before swap
 								Thread.sleep(scheduler.quantum);
 								if(currentProcess == scheduler.processes.peek()) {
 									Integer moveProcessBack = scheduler.processes.poll();
@@ -36,27 +43,28 @@ public class TimeSlicing implements Runnable {
 					break;
 					
 				case FB:
-				try {
-					Thread.sleep(50);
-					int highestPriorityQueue = this.scheduler.findFirstNonEmptyFeedbackQueue();
-					if(highestPriorityQueue != -1) {
-						Integer currentProcess = this.scheduler.currentProcess;
-						Thread.sleep(scheduler.quantum);
-						if (this.scheduler.currentProcess != -1) {
-							if(currentProcess == this.scheduler.currentProcess) {
-								int currentProcessQueue = this.scheduler.feedbackFindQueueOfCurrentProcess();
-								if(currentProcessQueue != this.scheduler.FEEDBACKQUEUECOUNT-1) {
-									this.scheduler.feedbackQueues.get(currentProcessQueue+1).add(this.scheduler.currentProcess);	
-								} else {
-									this.scheduler.feedbackQueues.get(currentProcessQueue).add(this.scheduler.currentProcess);
+					try {
+						Thread.sleep(50);
+						int highestPriorityQueue = this.scheduler.findFirstNonEmptyFeedbackQueue();
+						if(highestPriorityQueue != -1) {
+							Integer currentProcess = this.scheduler.currentProcess;
+							Thread.sleep(scheduler.quantum);
+							if (this.scheduler.currentProcess != -1) {
+								if(currentProcess == this.scheduler.currentProcess) {
+									int currentProcessQueue = this.scheduler.feedbackFindQueueOfCurrentProcess();
+									if(currentProcessQueue != this.scheduler.FEEDBACKQUEUECOUNT-1) {
+										this.scheduler.feedbackQueues.get(currentProcessQueue+1).add(this.scheduler.currentProcess);	
+									} else {
+										this.scheduler.feedbackQueues.get(currentProcessQueue).add(this.scheduler.currentProcess);
+									}
+									this.scheduler.feedbackSwitchProcess();
 								}
-								this.scheduler.feedbackSwitchProcess();
 							}
 						}
-					}
-					
-				} catch (InterruptedException e) { e.printStackTrace(); }
+						
+					} catch (InterruptedException e) { e.printStackTrace(); }
 					break;
+				
 				default:
 					break;
 			}
